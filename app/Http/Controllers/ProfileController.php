@@ -6,6 +6,7 @@ use App\Http\Requests\ProfileUpdateRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Services\ImageService;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
 
@@ -24,18 +25,30 @@ class ProfileController extends Controller
     /**
      * Update the user's profile information.
      */
-    public function update(ProfileUpdateRequest $request): RedirectResponse
-    {
-        $request->user()->fill($request->validated());
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
-        }
+public function update(ProfileUpdateRequest $request, ImageService $imageService): RedirectResponse
+{
+    $user = $request->user();
 
-        $request->user()->save();
+    $data = $request->validated();
 
-        return Redirect::route('profile.edit')->with('status', 'profile-updated');
+    // Image upload/update logic
+    if ($request->hasFile('image')) {
+        $data['image'] = $imageService->update(
+            $request->file('image'),
+            $user->image
+        );
     }
+
+    // Email verification reset
+    if ($user->email !== $data['email']) {
+        $user->email_verified_at = null;
+    }
+
+    $user->update($data);
+
+    return Redirect::route('dashboard')->with('status', 'profile-updated');
+}
 
     /**
      * Delete the user's account.
