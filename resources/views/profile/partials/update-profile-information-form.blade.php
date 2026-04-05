@@ -13,7 +13,7 @@
         @csrf
     </form>
 
-    <form method="post" action="{{ route('profile.update') }}" class="mt-6 space-y-6">
+    <form method="post" action="{{ route('profile.update') }}" enctype="multipart/form-data" class="mt-6 space-y-6">
         @csrf
         @method('patch')
 
@@ -47,6 +47,24 @@
             @endif
         </div>
 
+        <div>
+    <label class="block font-medium text-sm text-gray-700">Profile Image</label>
+
+    <!-- File Input -->
+    <input type="file" name="image" id="imageInput" class="mt-2">
+
+    <!-- Current / Preview Image -->
+    <div class="mt-3">
+        <img 
+            id="previewImage"
+            src="{{ $user->image ? asset('storage/' . $user->image) : 'https://via.placeholder.com/100' }}"
+            width="100"
+            class="rounded"
+            alt="Profile Image"
+        >
+    </div>
+
+
         <div class="flex items-center gap-4">
             <x-primary-button>{{ __('Save') }}</x-primary-button>
 
@@ -61,4 +79,15 @@
             @endif
         </div>
     </form>
+    
 </section>
+<script>
+    document.getElementById('imageInput').addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        const preview = document.getElementById('previewImage');
+
+        if (file) {
+            preview.src = URL.createObjectURL(file);
+        }
+    });
+</script>
